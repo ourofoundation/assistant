@@ -67,12 +67,13 @@ async def connect_to_backend(ouro):
                 await subscribe_to_conversations(ouro)
                 while True:
                     try:
-                        while True:
-                            message = await websocket.recv()
-                            await handle_message(message, ouro, manager)
+                        message = await websocket.recv()
+                        await handle_message(message, ouro, manager)
                     except websockets.ConnectionClosed:
                         print("WebSocket connection closed unexpectedly")
                         raise  # Re-raise to trigger reconnection
+                    except Exception as e:
+                        print(f"Error in message loop: {e}")
         except websockets.ConnectionClosed:
             print("WebSocket connection closed")
         except Exception as e:
@@ -91,9 +92,20 @@ async def lifespan(app: FastAPI):
 
     ouro = Ouro(api_key=os.environ.get("OURO_API_KEY"))
     # Start the WebSocket connection task
-    await connect_to_backend(ouro)
+    # await connect_to_backend(ouro)
+    backend_task = asyncio.create_task(connect_to_backend(ouro))
 
-    yield
+    try:
+        yield
+    except KeyboardInterrupt:
+        print("Keyboard interrupt detected in lifespan")
+    finally:
+        # Cancel the backend task
+        backend_task.cancel()
+        try:
+            await backend_task
+        except asyncio.CancelledError:
+            print("Backend task cancelled")
 
     # Close the WebSocket connection if it's still open
     global websocket_connection

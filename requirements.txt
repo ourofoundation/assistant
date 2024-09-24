@@ -1,0 +1,10 @@
+fastapi
+pydantic
+uvicorn[standard]
+python-multipart
+Pillow
+supabase
+python-dotenv
+openai
+ouro-py
+scikit-learn
