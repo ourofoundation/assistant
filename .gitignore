@@ -1,0 +1,12 @@
+*.pyc
+__pycache__/
+
+# OS files
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.development
+.env.test
+.env.production
